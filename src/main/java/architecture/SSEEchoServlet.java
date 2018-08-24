@@ -15,7 +15,9 @@ public class SSEEchoServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
-		Integer userId = Integer.parseInt(req.getParameter("user"));
+		String user = req.getParameter("user");
+		String id = req.getSession().getId();
+
 		// set content type
 		Boolean sendSSE = false;
 		while (!sendSSE) {
@@ -24,15 +26,17 @@ public class SSEEchoServlet extends HttpServlet {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			sendSSE = PushStatusSingleton.getInstance().getIsUpdate().get(userId);
-			if (sendSSE == null)
+			sendSSE = PushStatusSingleton.getInstance().getIsUpdate().get(user + "__" + id);
+			if (sendSSE == null) {
+				PushStatusSingleton.getInstance().getIsUpdate().put(user + "__" + id, false);
 				sendSSE = false;
+			}
 		}
 
 		res.setContentType("text/event-stream");
 		res.setCharacterEncoding("UTF-8");
 		PrintWriter writer = res.getWriter();
-		PushStatusSingleton.getInstance().getIsUpdate().put(userId, false);
+		PushStatusSingleton.getInstance().getIsUpdate().put(user + "__" + id, false);
 		// send SSE
 		writer.write("data: " + "true" + "\n\n");
 

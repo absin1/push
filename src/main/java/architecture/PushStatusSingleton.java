@@ -5,7 +5,7 @@ import java.util.HashMap;
 public final class PushStatusSingleton {
 
 	private static PushStatusSingleton INSTANCE;
-	private HashMap<Integer, Boolean> isUpdate = new HashMap<>();
+	private HashMap<String, Boolean> isUpdate = new HashMap<>();
 
 	private PushStatusSingleton() {
 	}
@@ -19,11 +19,11 @@ public final class PushStatusSingleton {
 	}
 	// getters and setters
 
-	public HashMap<Integer, Boolean> getIsUpdate() {
+	public HashMap<String, Boolean> getIsUpdate() {
 		return isUpdate;
 	}
 
-	public void setIsUpdate(HashMap<Integer, Boolean> isUpdate) {
+	public void setIsUpdate(HashMap<String, Boolean> isUpdate) {
 		this.isUpdate = isUpdate;
 	}
 

@@ -1,6 +1,7 @@
 package architecture;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,6 +26,10 @@ public class ReadUpdateComplexObject extends HttpServlet {
 		String complex = req.getParameter("complex");
 		String user = req.getParameter("user");
 		Model.getInstance().getComplexMap().put(Integer.parseInt(user), new ComplexObject(complex));
-		PushStatusSingleton.getInstance().getIsUpdate().put(Integer.parseInt(user), true);
+		HashMap<String, Boolean> isUpdate = PushStatusSingleton.getInstance().getIsUpdate();
+		for (String key : isUpdate.keySet()) {
+			if (key.split("__")[0].equalsIgnoreCase(user))
+				PushStatusSingleton.getInstance().getIsUpdate().put(key, true);
+		}
 	}
 }

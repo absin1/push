@@ -13,7 +13,7 @@ public class Test {
 		System.out.println(classSingleton1.getInfo()); // New class info
 		System.out.println(classSingleton2.getInfo()); // New class info
 		*/
-		
+		System.out.println("aaa__zzz".split("__")[0]);
 		
 		
 	}
