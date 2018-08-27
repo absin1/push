@@ -27,7 +27,7 @@ function echo() {
 	var output = document.getElementById("output");
 	if (typeof (EventSource) !== "undefined") {
 		var msg = document.getElementById("textID").value;
-		var source = new EventSource("http://192.168.1.34:8080/istar/simplesse?user=" + msg);
+		var source = new EventSource("http://192.168.1.7:8080/push/simplesse?user=" + msg);
 		source.onmessage = function(event) {
 			output.innerHTML += event.data + "<br>";
 		};
