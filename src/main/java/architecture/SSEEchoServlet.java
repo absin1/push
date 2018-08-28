@@ -25,15 +25,16 @@ public class SSEEchoServlet extends HttpServlet {
 		@Override
 		public void run() {
 			while (running) {
-				System.out.println("Total Listeners: " + asyncContexts.values().size());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				// System.out.println("Total Listeners: " + asyncContexts.values().size());
 				// Sends the message to all the AsyncContext's response
 				for (AsyncContext asyncContext : asyncContexts.values()) {
 					// System.out.println("Listening>>" + asyncContext);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} // set content type
+					// set content type
 					HttpServletRequest req = (HttpServletRequest) asyncContext.getRequest();
 					HttpServletResponse res1 = (HttpServletResponse) asyncContext.getResponse();
 					String user = req.getParameter("user");
@@ -56,9 +57,9 @@ public class SSEEchoServlet extends HttpServlet {
 							PushStatusSingleton.getInstance().getIsUpdate().put(user + "__" + id, false);
 							// send SSE
 							writer.write("data: " + "true" + "\n\n");
-							asyncContexts.values().remove(asyncContext);
+							// asyncContexts.values().remove(asyncContext);
 							asyncContext.complete();
-							System.out.println("Sent response");
+							System.out.println("Sent a push from " + asyncContext);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -70,9 +71,11 @@ public class SSEEchoServlet extends HttpServlet {
 
 	@Override
 	public void destroy() {
+
 		// Stops thread and clears queue and stores
 		running = false;
 		asyncContexts.clear();
+		System.err.println("Servlet for pushing events destroyed");
 	}
 
 	@Override
@@ -81,6 +84,7 @@ public class SSEEchoServlet extends HttpServlet {
 		super.init();
 		running = true;
 		notifier.start();
+		System.out.println("Servlet for pushing events started");
 	}
 
 	@Override
@@ -95,11 +99,15 @@ public class SSEEchoServlet extends HttpServlet {
 			@Override
 			public void onComplete(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
+				System.out.println("Completed an existing listener and removed it from asynchContexts: " + ac
+						+ ", taking the total listener count to " + asyncContexts.values().size());
 			}
 
 			@Override
 			public void onError(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
+				System.err.println("An existing listener went into error and was removed from asynchContexts: " + ac
+						+ ", taking the total listener count to " + asyncContexts.values().size());
 			}
 
 			@Override
@@ -110,6 +118,36 @@ public class SSEEchoServlet extends HttpServlet {
 			@Override
 			public void onTimeout(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
+				System.err.println("An existing listener timed out and was removed from asynchContexts: " + ac
+						+ ", taking the total listener count to " + asyncContexts.values().size());
+
+				HttpServletRequest req = (HttpServletRequest) ac.getRequest();
+				HttpServletResponse res1 = (HttpServletResponse) ac.getResponse();
+				String user = req.getParameter("user");
+				String id = req.getSession().getId();
+				Boolean sendSSE = false;
+				sendSSE = PushStatusSingleton.getInstance().getIsUpdate().get(user + "__" + id);
+				if (sendSSE == null) {
+					PushStatusSingleton.getInstance().getIsUpdate().put(user + "__" + id, false);
+					sendSSE = false;
+				}
+				HttpServletResponse httpResponse = (HttpServletResponse) res1;
+				// httpResponse.addHeader("Access-Control-Allow-Origin", "*");
+				httpResponse.setContentType("text/event-stream");
+				httpResponse.setCharacterEncoding("UTF-8");
+				PrintWriter writer;
+				try {
+					// writer = httpResponse.getWriter();
+					writer = ac.getResponse().getWriter();
+					PushStatusSingleton.getInstance().getIsUpdate().put(user + "__" + id, false);
+					// send SSE
+					writer.write("data: " + "false" + "\n\n");
+					// asyncContexts.values().remove(ac);
+					ac.complete();
+					System.out.println("Sent a push from " + ac + " post timeout in order to reinitiate.");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 

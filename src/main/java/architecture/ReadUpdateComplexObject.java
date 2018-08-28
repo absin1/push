@@ -18,6 +18,12 @@ public class ReadUpdateComplexObject extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Integer user = Integer.parseInt(req.getParameter("user"));
 		ComplexObject complexObject = Model.getInstance().getComplexMap().get(user);
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		resp.getWriter().append(complexObject.getName());
 	}
 
